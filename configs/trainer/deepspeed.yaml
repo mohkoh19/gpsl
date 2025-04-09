@@ -1,0 +1,9 @@
+defaults:
+  - default
+
+strategy: deepspeed_stage_2
+
+accelerator: gpu
+devices: 2
+num_nodes: 2
+sync_batchnorm: True
