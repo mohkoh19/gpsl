@@ -1,0 +1,21 @@
+_target_: src.data.cifar10_datamodule.CIFAR10DataModule
+data_dir: ${paths.data_dir}
+batch_size: 128 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
+num_workers: 32
+pin_memory: False
+persistent_workers: True
+transforms:
+  train:
+    - _target_: "torchvision.transforms.RandomCrop"
+      size: 32
+      padding: 1
+    - _target_: "torchvision.transforms.RandomHorizontalFlip"
+    - _target_: "torchvision.transforms.ToTensor"
+    - _target_: "torchvision.transforms.Normalize"
+      mean: [0.4914, 0.4822, 0.4465]
+      std: [0.2023, 0.1994, 0.2010]
+  test:
+    - _target_: "torchvision.transforms.ToTensor"
+    - _target_: "torchvision.transforms.Normalize"
+      mean: [0.4914, 0.4822, 0.4465]
+      std: [0.2023, 0.1994, 0.2010]

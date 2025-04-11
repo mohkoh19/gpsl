@@ -1,0 +1,32 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /data: ham10k
+  - override /model: gpsl
+  - override /distributed: gpsl
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+tags: ["cifar10", "resnet18", "gpsl"]
+
+trainer:
+  min_epochs: 200
+  max_epochs: 200
+
+model:
+  optimizer:
+    _target_: "torch.optim.Adam"
+    lr: 0.0001
+
+distributed:
+  subset_config:
+    distribution: "iid"
+    # params: {}
+    # distribution: "non_iid"
+    params:
+      C: 3
+      alpha: 10
