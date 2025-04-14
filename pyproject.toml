@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "multimodal-ssl"
+name = "gpsl"
 version = "0.1.0"
-description = "Predictive Self-Supervised Learning for Multi-View Representation Learning"
+description = "Parallel Split Learning with Global Sampling"
 authors = ["Your Name <your.email@example.com>"]
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/mohkoh19/multimodal-ssl"
+repository = "https://github.com/mohkoh19/gpsl"
 packages = [{ include = "src" }]
 
 [tool.poetry.dependencies]
