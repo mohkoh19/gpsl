@@ -1,0 +1,25 @@
+_target_: src.models.sfl_module.SFLModule
+
+model:
+  _target_: "models.components.torchvision_wrappers.resnet18"
+  _partial_: true
+
+optimizer:
+  _target_: torch.optim.SGD
+  _partial_: true
+  lr: 0.01
+  # weight_decay: 0.0005
+  # momentum: 0.9
+  # ToDo: Overwrite issue in hydra
+
+loss_fn:
+  _target_: "torch.nn.functional.cross_entropy"
+  _partial_: true
+
+cut_layer: "layer2"
+
+gn_num_groups: 32
+
+num_clients: ${distributed.num_clients}
+
+round_size: 3

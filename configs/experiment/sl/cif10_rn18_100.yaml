@@ -5,13 +5,13 @@
 
 defaults:
   - override /data: cifar10
-  - override /model: gpsl
-  - override /distributed: gpsl
+  - override /model: sl
+  - override /distributed: sl
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["cifar10", "resnet18", "gpsl"]
+tags: ["cifar10", "resnet18", "sl"]
 
 trainer:
   min_epochs: 100
@@ -24,3 +24,4 @@ distributed:
     params:
       C: 3
       alpha: 10
+

@@ -1,5 +1,5 @@
-_target_: src.data.distributed_datamodule.DistributedDataModule
-num_clients: 2
+_target_: src.data.gpsl_distributed_datamodule.DistributedDataModule
+num_clients: 32
 subset_config:
   distribution: "iid"
   params:

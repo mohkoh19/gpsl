@@ -33,10 +33,6 @@ class DistributedDataModule(LightningDataModule):
             "timeout": loader.timeout,
             "worker_init_fn": loader.worker_init_fn,
             "persistent_workers": loader.persistent_workers,
-            # You could try to guess shuffle from the sampler type
-            # Cannot reliably recover:
-            # - exact DataLoader class (_target_)
-            # - sampler/collate_fn instantiation
         }
 
     def setup(self, stage=None):
@@ -51,11 +47,6 @@ class DistributedDataModule(LightningDataModule):
             if hasattr(train_dataset, "__getitem__")
             else None
         )
-        # targets = (
-        #     train_dataset.targets
-        #     if hasattr(train_dataset, "targets")
-        #     else train_dataset.labels
-        # )
         split_indices = split_dataset(
             targets,
             self.num_clients,
