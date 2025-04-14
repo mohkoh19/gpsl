@@ -1,0 +1,9 @@
+# @package _global_
+
+trainer:
+  accelerator: gpu
+  devices: 2
+  precision: bf16-mixed
+
+# matmul precision for A100 GPUs
+matmul_precision: high
