@@ -22,5 +22,5 @@ distributed:
     # distribution: "iid"
     distribution: "non_iid"
     params:
-      C: 3
-      alpha: 10
+      C: 5
+      alpha: 3

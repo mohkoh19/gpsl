@@ -7,12 +7,15 @@ from utils.aggregation import (
     replace_bn_with_gn,
 )
 from utils.splitter import split_model
+import gc, tracemalloc
 from torchmetrics import (
     AUROC,
     Accuracy,
     F1Score,
     MeanMetric,
 )
+import multiprocessing as mp
+import torch.nn.functional as F
 
 
 class GPSLModule(LightningModule):
@@ -24,6 +27,7 @@ class GPSLModule(LightningModule):
         cut_layer,
         gn_num_groups,
         num_clients,
+        max_workers=4,
     ):
         super().__init__()
         # Save all hyperparameters so that they can be accessed via self.hparams
@@ -32,10 +36,13 @@ class GPSLModule(LightningModule):
         # Disable automatic optimization (we are doing manual gradient handling)
         self.automatic_optimization = False
 
-        # ThreadPoolExecutor will be initialized each epoch in on_train_epoch_start
+        # ThreadPoolExecutor for client model forward passes
         self.executor = ThreadPoolExecutor(
-            max_workers=num_clients, thread_name_prefix="gpsl_client_model"
+            max_workers=max_workers, thread_name_prefix="gpsl_client_forward"
         )
+
+        # Reference to subset iterators
+        self.iters = None
 
     def setup(self, stage):
         if stage != "fit":
@@ -59,6 +66,9 @@ class GPSLModule(LightningModule):
             for i in range(self.hparams.num_clients)
         ]
 
+        for cm in self.client_models:
+            cm.train()
+
         # Assign the server model
         self.server_model = server_model.to(self.device)
 
@@ -75,39 +85,49 @@ class GPSLModule(LightningModule):
         self.train_auroc = AUROC(task="multiclass", num_classes=num_classes)
         self.test_auroc = AUROC(task="multiclass", num_classes=num_classes)
 
-    def forward(self, x, active_indices=None):
-        # If active_indices is not provided, use all clients
-        if active_indices is None:
-            active_indices = list(range(len(x)))
+    def on_train_epoch_start(self):
+        # Get the iterators from the datamodule
+        self.iters = [
+            iter(dl) for dl in self.trainer.datamodule.train_subset_dataloaders
+        ]
 
+    def on_train_epoch_end(self):
+        self.train_acc.reset()
+        self.train_f1.reset()
+        self.train_auroc.reset()
+
+    def on_validation_epoch_end(self):
+        self.test_acc.reset()
+        self.test_f1.reset()
+        self.test_auroc.reset()
+
+        self.client_models[-1].train()
+
+    def forward(self, active_indices):
         def client_forward(i):
-            sd = self.client_models[i](x[i])
-            return sd
+            try:
+                x, y = next(self.iters[i])
+                self.client_optims[i].zero_grad()
+                sd = self.client_models[i](x.to(self.device))
+                return sd, y.to(self.device)
+            except StopIteration:
+                return None, None
 
         # Collect the smashed outputs and labels from participating clients
-        smashed_data = list(self.executor.map(client_forward, active_indices))
+        client_data = list(self.executor.map(client_forward, active_indices))
 
-        # Concatenate smashed data along the batch dimension
-        smashed_data = torch.concatenate(smashed_data, axis=0)
+        B = [cd[0] for cd in client_data if cd[0] is not None]
+        y = [cd[1] for cd in client_data if cd[0] is not None]
+        sd = torch.concatenate(B, axis=0)
+        y = torch.concatenate(y, axis=0)
 
-        preds = self.server_model(smashed_data)
-        return preds
-
-    def training_step(self, batch, batch_idx):
-        # The incoming batch is from a CombinedDataLoader
-        # It is a list of batches, one for each client
-        active_indices = [i for i, b in enumerate(batch) if b is not None]
-
-        x = [b[0] if b is not None else None for b in batch]
-        Y = torch.concatenate([batch[i][1] for i in active_indices], axis=0)
-
-        # Server forward pass and loss computation
         self.server_optimizer.zero_grad()
-        for co in self.client_optims:
-            co.zero_grad()
+        preds = self.server_model(sd)
+        return preds, y
 
-        preds = self.forward(x, active_indices)
-        loss = self.hparams.loss_fn(preds, Y)
+    def training_step(self, active_indices, batch_idx):
+        preds, y = self.forward(active_indices)
+        loss = self.hparams.loss_fn(preds, y)
 
         # Perform gradient averaging over active clients + Optimizer step
         self.manual_backward(loss)
@@ -127,21 +147,42 @@ class GPSLModule(LightningModule):
         )
         self.log(
             "train/acc",
-            self.train_acc(preds, Y),
+            self.train_acc(preds, y),
         )
         self.log(
             "train/f1",
-            self.train_f1(preds, Y),
+            self.train_f1(preds, y),
         )
         self.log(
             "train/auroc",
-            self.train_auroc(preds, Y),
+            self.train_auroc(preds, y),
+        )
+
+        def batch_deviation(targets: torch.Tensor) -> torch.Tensor:
+            num_classes = self.trainer.datamodule.num_classes
+            global_dist = self.trainer.datamodule.global_dist
+
+            dist = torch.bincount(targets.detach().cpu(), minlength=num_classes).float()
+            dist /= dist.sum()
+
+            deviation = F.l1_loss(
+                dist,
+                global_dist,
+                reduction="sum",
+            )
+
+            return deviation
+
+        self.log(
+            "train/batch_deviation",
+            batch_deviation(y),
         )
 
         return loss
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
+        self.client_models[-1].eval()
         # For testing, use the last client: use the same unpacking as in forward.
         sd = self.client_models[-1](x)
         out = self.server_model(sd)

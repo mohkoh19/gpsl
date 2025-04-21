@@ -1,3 +1,4 @@
+import torch
 from lightning import LightningDataModule
 from lightning.pytorch.utilities.combined_loader import CombinedLoader
 from torch.utils.data import DataLoader, Subset
@@ -47,6 +48,14 @@ class DistributedDataModule(LightningDataModule):
             if hasattr(train_dataset, "__getitem__")
             else None
         )
+
+        # Global label distribution
+        self.global_dist = torch.bincount(
+            torch.tensor(targets), minlength=self.num_classes
+        ).float()
+        self.global_dist /= self.global_dist.sum()
+        self.global_dist = self.global_dist
+
         split_indices = split_dataset(
             targets,
             self.num_clients,
@@ -77,16 +86,13 @@ class DistributedDataModule(LightningDataModule):
             base_loader.batch_size,
         )
 
-        self.global_batch_sampler.generate_batches()
-
     def train_dataloader(self):
         if self.train_subset_dataloaders is None:
             raise RuntimeError("setup() must be called before train_dataloader()")
 
-        return CombinedLoader(
-            self.train_subset_dataloaders,
-            mode="max_size",
-        )
+        # Returns a simple iterator that returns the active indices for each batch
+        # This is used to schedule the batches among clients
+        return DataLoader(self.global_batch_sampler, batch_size=1, shuffle=False)
 
     def on_train_epoch_start(self):
         self.global_batch_sampler.generate_batches()

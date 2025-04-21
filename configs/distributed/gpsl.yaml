@@ -1,7 +1,7 @@
 _target_: src.data.gpsl_distributed_datamodule.DistributedDataModule
 num_clients: 32
 subset_config:
-  distribution: "iid"
+  distribution: "non_iid"
   params:
     C: 2
     alpha: 3

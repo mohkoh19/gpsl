@@ -25,4 +25,4 @@ distributed:
     # distribution: "non_iid"
     params:
       C: 3
-      alpha: 10
+      alpha: 3

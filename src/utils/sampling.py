@@ -65,6 +65,8 @@ class GlobalBatchSampler:
 
         self.client_sequences = []
 
+        self.generate_batches()
+
     def update_local_batch_samplers(self, batches):
         batch_client_matrix = np.array(batches)  # B x K
 
@@ -97,6 +99,13 @@ class GlobalBatchSampler:
 
     def __len__(self):
         return len(self.client_sequences)
+
+    def __getitem__(self, index):
+        if not self.client_sequences:
+            raise Exception(
+                "GlobalBatchSampler: generate_batches() has not been called; no batches available."
+            )
+        return self.client_sequences[index]
 
     def __iter__(self):
         if not self.client_sequences:
@@ -155,6 +164,11 @@ class LocalFixedSampler:
             batches.append(b.astype(int))
 
         return batches
+
+
+class LocalFixedSamplerNonProportional(LocalFixedSampler):
+    def __init__(self, local_batch_samplers, batch_size, proportional=True) -> None:
+        super().__init__(local_batch_samplers, batch_size, proportional=False)
 
 
 class UniformGlobalSampler:
