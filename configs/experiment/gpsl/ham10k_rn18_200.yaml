@@ -18,11 +18,12 @@ model:
   optimizer:
     _target_: "torch.optim.Adam"
     lr: 0.0001
+  model:
+    small_imgs: False
 
 distributed:
   subset_config:
-    distribution: "iid"
-    # distribution: "non_iid"
+    distribution: "non_iid"
     params:
       C: 3
-      alpha: 3
+      alpha: 10

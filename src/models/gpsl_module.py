@@ -76,11 +76,11 @@ class GPSLModule(LightningModule):
         self.train_loss = MeanMetric()
         self.test_loss = MeanMetric()
 
-        self.train_acc = Accuracy(task="multiclass", num_classes=num_classes)
-        self.test_acc = Accuracy(task="multiclass", num_classes=num_classes)
+        self.train_acc = Accuracy(task="multiclass", num_classes=num_classes, average="macro")
+        self.test_acc = Accuracy(task="multiclass", num_classes=num_classes, average="macro")
 
-        self.train_f1 = F1Score(task="multiclass", num_classes=num_classes)
-        self.test_f1 = F1Score(task="multiclass", num_classes=num_classes)
+        self.train_f1 = F1Score(task="multiclass", num_classes=num_classes, average="macro")
+        self.test_f1 = F1Score(task="multiclass", num_classes=num_classes, average="macro")
 
         self.train_auroc = AUROC(task="multiclass", num_classes=num_classes)
         self.test_auroc = AUROC(task="multiclass", num_classes=num_classes)
