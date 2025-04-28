@@ -7,5 +7,6 @@ subset_config:
     alpha: 3
 
 sampler:
-  _target_: "src.utils.sampling.UniformGlobalSampler"
+  # _target_: "src.utils.sampling.UniformGlobalSampler"
+  _target_: "src.utils.sampling.LocalFixedSamplerNonProportional"
   _partial_: true
