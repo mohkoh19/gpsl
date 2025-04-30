@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - override /hydra/sweeper: basic
+  - override /hydra/launcher: joblib
+
+hydra:
+  mode: MULTIRUN
+  launcher:
+    n_jobs: 1
+  sweeper:
+    params:
+      seed: 313,72,40,19,7
+      distributed.sampler._target_: src.utils.sampling.LocalFixedSamplerNonProportional,src.utils.sampling.UniformGlobalSampler,src.utils.sampling.LocalFixedSampler
+      data.batch_size: 64,128,256

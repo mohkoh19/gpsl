@@ -10,8 +10,5 @@ hydra:
   sweeper:
     params:
       seed: 313,72,40,19,7
-      # distributed.subset_config.distribution: non_iid,iid
       distributed.sampler._target_: src.utils.sampling.UniformGlobalSampler,src.utils.sampling.LocalFixedSampler,src.utils.sampling.LocalFixedSamplerNonProportional
-      distributed.subset_config.params.C: 3,5
-      data.batch_size: 32,64,128
-      distributed.num_clients: 4,8,16,32
+      distributed.num_clients: 16,32,64,128

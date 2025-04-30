@@ -1,0 +1,17 @@
+# @package _global_
+
+defaults:
+  - override /data: cifar10
+  - override /model: gpsl
+  - override /distributed: gpsl
+
+tags: ["cifar10", "resnet18", "gpsl"]
+
+trainer:
+  min_epochs: 100
+  max_epochs: 100
+
+distributed:
+  num_clients: 1
+  subset_config:
+    distribution: "iid"

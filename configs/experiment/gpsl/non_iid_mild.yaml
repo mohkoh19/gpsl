@@ -1,15 +1,9 @@
 # @package _global_
 
-# to execute this experiment run:
-# python train.py experiment=example
-
 defaults:
   - override /data: cifar10
   - override /model: gpsl
   - override /distributed: gpsl
-
-# all parameters below will be merged with parameters from default configurations set above
-# this allows you to overwrite only specified parameters
 
 tags: ["cifar10", "resnet18", "gpsl"]
 
@@ -19,7 +13,6 @@ trainer:
 
 distributed:
   subset_config:
-    # distribution: "iid"
     distribution: "non_iid"
     params:
       C: 5

@@ -1,0 +1,13 @@
+# @package _global_
+defaults:
+  - override /hydra/sweeper: basic
+  - override /hydra/launcher: joblib
+
+hydra:
+  mode: MULTIRUN
+  launcher:
+    n_jobs: 1
+  sweeper:
+    params:
+      seed: 313,72,40,19,7
+      data.batch_size: 64,128,256
