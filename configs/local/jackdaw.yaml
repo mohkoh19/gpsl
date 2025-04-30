@@ -7,3 +7,9 @@ trainer:
 
 # matmul precision for A100 GPUs
 matmul_precision: high
+
+data:
+  num_workers: 8
+
+model:
+  max_workers: 8
