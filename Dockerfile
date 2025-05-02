@@ -27,31 +27,3 @@ RUN poetry install --no-root
 
 # Copy the rest of the code
 COPY . .
-
-# ================================
-# PERSONAL ZSH CONFIGURATION
-# This section is a personal preference
-# Can be removed/commented out if not needed.
-# Requires .zshrc and .p10k.zsh files in the same directory as the Dockerfile
-# =================================
-
-# Install Zsh and make it the default shell
-RUN apt-get update && apt-get install -y zsh && chsh -s $(which zsh)
-
-# Install Oh My Zsh
-RUN sh -c "$(wget -O- https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" --unattended
-
-# Install Powerlevel10k theme
-RUN git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/custom/themes/powerlevel10k
-
-# Copy your custom .zshrc file into the container
-COPY .zshrc /root/.zshrc
-
-# Copy your custom .p10k.zsh file into the container
-COPY .p10k.zsh /root/.p10k.zsh
-
-# Disable Powerlevel10k configuration wizard
-RUN echo 'POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true' >>! ~/.zshrc
-
-# Add the app directory to the safe directory list
-RUN zsh -c 'source ~/.zshrc && git config --global --add safe.directory /app'

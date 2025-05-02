@@ -1,7 +1,0 @@
-_target_: src.data.sl_distributed_datamodule.SLDistributedDataModule
-num_clients: 32
-subset_config:
-  distribution: "iid"
-  params:
-    C: 2
-    alpha: 3

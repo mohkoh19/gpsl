@@ -9,6 +9,6 @@ hydra:
     n_jobs: 1
   sweeper:
     params:
-      seed: 7,19,40,72,313
+      seed: 1,2,3,4,5
       distributed.sampler._target_: src.utils.sampling.UniformGlobalSampler,src.utils.sampling.LocalFixedSampler,src.utils.sampling.LocalFixedSamplerNonProportional
       distributed.num_clients: 16,32,64,128
