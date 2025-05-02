@@ -13,8 +13,6 @@ GPSL is a method for distributed deep learning. At a high level, it samples clie
 
 ## Evaluation
 
-### Evaluation
-
 GPSL is evaluated on the CIFAR-10 dataset under IID, mild non-IID, and severe non-IID settings with up to 128 clients.
 
 - **Accuracy**: Under severe non-IID conditions with 128 clients, GPSL achieves **84.31%** test accuracy—matching centralized learning and outperforming baseline methods by a large margin (FLS: 58.88%, FPLS: 70.05%).
@@ -102,12 +100,11 @@ python src/train.py -m experiment=gpsl/cl seed=1,2,3,4,5
 - For hyperparameter search and logging, ensure your API keys are configured in the `.env` file or via your preferred method.
 
 ## License
-See the https://github.com/mohkoh19/gpsl/LICENSE file for details about the license under which this code is made available.
+For license details, please refer to the [LICENSE](https://github.com/mohkoh19/gpsl/LICENSE) in this repository
 
 ## Citation
 
-If you find this repository useful in your research, please consider giving a star ⭐ and citing:
-
+If you find this repository helpful, please consider starring ⭐ the project and citing it as:
 ```
 @article{kohankhaki2024gpsl,
   title={Parallel Split Learning with Global Sampling},

@@ -1,35 +1,35 @@
+"""
+Utility functions for gradient averaging and normalization layer replacement
+used in Global Parallel Split Learning (GPSL).
+"""
+
 import torch
 from torch import nn
 
 
-def fed_avg(models, weights):
-    # Get the state_dicts of the models
-    state_dicts = [model.state_dict() for model in models]
-
-    # Aggregate
-    avg_state_dict = {key: torch.zeros_like(val) for key, val in state_dicts[0].items()}
-
-    for state_dict, weight in zip(state_dicts, weights):
-        for key in avg_state_dict:
-            if "num_batches_tracked" in key:
-                continue
-            avg_state_dict[key] += state_dict[key] * weight
-
-    for model in models:
-        model.load_state_dict(avg_state_dict)
-
-    return models
-
-
 def grad_avg(models, active_indices, weights=None):
-    # If weights not provided, use uniform weighting
+    """
+    Perform weighted gradient averaging over a subset of models.
+
+    Parameters
+    ----------
+    models : list of torch.nn.Module
+        List of models to update.
+    active_indices : list of int
+        Indices of models participating in the gradient averaging.
+    weights : list of float, optional
+        Weights for each participating model. If None, uniform weights are used.
+
+    Returns
+    -------
+    list of torch.nn.Module
+        Updated models with averaged gradients.
+    """
     if weights is None:
         weights = [1] * len(active_indices)
 
-    # Get the gradients of the models (they remain on their current devices)
     grads = [get_gradients(models[i]) for i in active_indices]
 
-    # Aggregate gradients: sum weight-adjusted gradients for each parameter index
     avg_grads = [
         sum(grads[i][j] * weights[i] for i in range(len(grads)))
         for j in range(len(grads[0]))
@@ -42,42 +42,62 @@ def grad_avg(models, active_indices, weights=None):
 
 
 def get_gradients(model):
+    """
+    Extract gradients from a model's parameters.
+
+    Parameters
+    ----------
+    model : torch.nn.Module
+        Model from which to extract gradients.
+
+    Returns
+    -------
+    list of torch.Tensor
+        List of parameter gradients.
+    """
     grads = []
     for param in model.parameters():
-        if param.grad is not None:
-            grads.append(param.grad.clone())
-        else:
-            grads.append(torch.zeros_like(param))
+        grads.append(
+            param.grad.clone() if param.grad is not None else torch.zeros_like(param)
+        )
     return grads
 
 
 def set_gradients(grads, model):
+    """
+    Assign gradients to a model's parameters.
+
+    Parameters
+    ----------
+    grads : list of torch.Tensor
+        Gradients to assign.
+    model : torch.nn.Module
+        Target model.
+    """
     for param, grad in zip(model.parameters(), grads):
         param.grad = grad
 
 
 def replace_bn_with_gn(model, num_groups=32):
     """
-    Recursively replaces all BatchNorm layers in the given model with GroupNorm layers.
+    Recursively replaces all BatchNorm layers in a model with GroupNorm layers.
 
-    Args:
-        model (torch.nn.Module): The input PyTorch model.
-        num_groups (int): The number of groups for GroupNorm layers.
+    Parameters
+    ----------
+    model : torch.nn.Module
+        Model in which to replace BatchNorm layers.
+    num_groups : int
+        Number of groups to use for GroupNorm.
 
-    Returns:
-        torch.nn.Module: The modified model with GroupNorm layers.
+    Returns
+    -------
+    torch.nn.Module
+        Model with GroupNorm layers replacing BatchNorm layers.
     """
     for name, module in model.named_children():
-        if isinstance(module, nn.BatchNorm1d):
-            gn = nn.GroupNorm(num_groups, module.num_features)
-            setattr(model, name, gn)
-        elif isinstance(module, nn.BatchNorm2d):
-            gn = nn.GroupNorm(num_groups, module.num_features)
-            setattr(model, name, gn)
-        elif isinstance(module, nn.BatchNorm3d):
+        if isinstance(module, (nn.BatchNorm1d, nn.BatchNorm2d, nn.BatchNorm3d)):
             gn = nn.GroupNorm(num_groups, module.num_features)
             setattr(model, name, gn)
         else:
             replace_bn_with_gn(module, num_groups)
-
     return model
