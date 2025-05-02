@@ -8,8 +8,7 @@ GPSL is a method for distributed deep learning. At a high level, it samples clie
 - without requiring fixed or proportional local batch sizes, which introduce rounding bias and data imbalance,
 - and without increasing the effective batch size with the number of clients, which harms generalization and training efficiency.
 
-[ToDo: Overview Image]
-
+<img src="https://github.com/user-attachments/assets/316a259b-223d-431e-8499-575756d05254" alt="Alt text" width="400"/>
 
 ## Evaluation
 
@@ -20,7 +19,15 @@ GPSL is evaluated on the CIFAR-10 dataset under IID, mild non-IID, and severe no
 - **Training Time**: GPSL significantly reduces total training time by avoiding unnecessary client data depletion, especially in low batch size settings.
 - **Robustness**: Performance is stable across a wide range of client counts (K = 16–128) and global batch sizes (B = 64–256), demonstrating strong scalability.
 
-[ToDo: visuals] Test Accuracy Comparison Chart, Batch Deviation Curves
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/dcc36b81-1673-48c8-9f5c-fd3eb6a8794c" alt="Test Accuracy Curve" width="52%" style="margin-right: 1%">
+  <img src="https://github.com/user-attachments/assets/5f9d199e-c7b4-4f89-86ef-58a28e464504" alt="Batch Deviation" width="45%">
+</div>
+<p align="center">
+  <b>Left:</b> Test accuracy across epochs under severe non-IID conditions.     
+  <b>Right:</b> Batch deviation over time under severe non-IID conditions.
+</p>
+
 
 ## Code Structure
 
