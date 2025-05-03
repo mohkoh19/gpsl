@@ -1,6 +1,6 @@
 # GPSL
 
-Official PyTorch codebase for GPSL (Parallel Split Learning with Global Sampling). [arXiv](https://arxiv.org/abs/2407.15738)
+Official PyTorch codebase for GPSL (Parallel Split Learning with Global Sampling). [[arXiv]](https://arxiv.org/abs/2407.15738)
 
 ## Method
 
